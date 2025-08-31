@@ -23,6 +23,9 @@ public class AttendanceService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    private static final LocalTime WORK_START = LocalTime.of(8, 0);
+    private static final LocalTime WORK_END = LocalTime.of(17, 0);
+
     public Attendance checkIn(AttendanceRequest request) {
         Employee employee = employeeRepository.findById(request.getEmployeeId())
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
@@ -35,10 +38,19 @@ public class AttendanceService {
             throw new RuntimeException("Already checked in today");
         });
 
+        LocalDateTime now = LocalDateTime.now();
+        AttendanceStatus status;
+
+        if (now.toLocalTime().isAfter(WORK_START)) {
+            status = AttendanceStatus.LATE;
+        } else {
+            status = AttendanceStatus.PRESENT;
+        }
+
         Attendance attendance = Attendance.builder()
                 .employee(employee)
                 .checkIn(LocalDateTime.now())
-                .status(AttendanceStatus.PRESENT)
+                .status(status)
                 .build();
 
         return attendanceRepository.save(attendance);
@@ -58,6 +70,13 @@ public class AttendanceService {
 
         if (attendance.getCheckout() != null) {
             throw new RuntimeException("Already checked out today");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        attendance.setCheckout(now);
+
+        if (now.toLocalTime().isBefore(WORK_END)) {
+            attendance.setStatus(AttendanceStatus.EARLY_LEAVE);
         }
 
         return attendanceRepository.save(attendance);
