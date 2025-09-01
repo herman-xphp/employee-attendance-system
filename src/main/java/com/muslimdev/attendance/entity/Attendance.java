@@ -47,7 +47,7 @@ public class Attendance {
     private LocalDateTime checkout;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private AttendanceStatus status;
 
     @Column(nullable = false, updatable = false)
