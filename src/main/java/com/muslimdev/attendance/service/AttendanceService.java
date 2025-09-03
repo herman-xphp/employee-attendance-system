@@ -8,11 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.muslimdev.attendance.dto.AttendanceRequest;
+import com.muslimdev.attendance.dto.AttendanceResponse;
 import com.muslimdev.attendance.entity.Attendance;
 import com.muslimdev.attendance.entity.Employee;
 import com.muslimdev.attendance.enums.AttendanceStatus;
 import com.muslimdev.attendance.repository.AttendanceRepository;
 import com.muslimdev.attendance.repository.EmployeeRepository;
+import com.muslimdev.attendance.util.AttendanceMapper;
 
 @Service
 public class AttendanceService {
@@ -26,8 +28,8 @@ public class AttendanceService {
     private static final LocalTime WORK_START = LocalTime.of(8, 0);
     private static final LocalTime WORK_END = LocalTime.of(17, 0);
 
-    public Attendance checkIn(AttendanceRequest request) {
-        Employee employee = employeeRepository.findById(request.getEmployeeId())
+    public AttendanceResponse checkIn(AttendanceRequest request) {
+        Employee employee = employeeRepository.findByEmployeeCode(request.getEmployeeCode())
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
         LocalDate today = LocalDate.now();
@@ -53,11 +55,13 @@ public class AttendanceService {
                 .status(status)
                 .build();
 
-        return attendanceRepository.save(attendance);
+        Attendance saved = attendanceRepository.save(attendance);
+
+        return AttendanceMapper.toDto(saved);
     }
 
-    public Attendance checkOut(AttendanceRequest request) {
-        Employee employee = employeeRepository.findById(request.getEmployeeId())
+    public AttendanceResponse checkOut(AttendanceRequest request) {
+        Employee employee = employeeRepository.findByEmployeeCode(request.getEmployeeCode())
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
         LocalDate today = LocalDate.now();
@@ -79,6 +83,8 @@ public class AttendanceService {
             attendance.setStatus(AttendanceStatus.EARLY_LEAVE);
         }
 
-        return attendanceRepository.save(attendance);
+        Attendance saved = attendanceRepository.save(attendance);
+
+        return AttendanceMapper.toDto(saved);
     }
 }
