@@ -1,0 +1,239 @@
+openapi: 3.0.3
+info:
+  title: Employee & Attendance API
+  description: API untuk mengelola karyawan, absensi, dan laporan kehadiran.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+    description: Local development server
+
+tags:
+  - name: Employees
+    description: Endpoint terkait data karyawan
+  - name: Attendance
+    description: Endpoint untuk absensi karyawan
+  - name: Reports
+    description: Endpoint untuk laporan kehadiran
+
+paths:
+  /employees:
+    get:
+      tags: [Employees]
+      summary: Ambil semua karyawan
+      responses:
+        "200":
+          description: Daftar semua karyawan
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Employee"
+    post:
+      tags: [Employees]
+      summary: Tambahkan karyawan baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmployeeRequest"
+      responses:
+        "201":
+          description: Karyawan berhasil dibuat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Employee"
+
+  /employees/{id}:
+    get:
+      tags: [Employees]
+      summary: Ambil detail karyawan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Detail karyawan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Employee"
+        "404":
+          description: Karyawan tidak ditemukan
+    put:
+      tags: [Employees]
+      summary: Update data karyawan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmployeeRequest"
+      responses:
+        "200":
+          description: Karyawan berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Employee"
+    delete:
+      tags: [Employees]
+      summary: Hapus karyawan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Karyawan berhasil dihapus
+
+  /attendance/checkin:
+    post:
+      tags: [Attendance]
+      summary: Check-in karyawan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                employeeId: { type: integer }
+      responses:
+        "200":
+          description: Check-in berhasil
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attendance"
+
+  /attendance/checkout:
+    post:
+      tags: [Attendance]
+      summary: Check-out karyawan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                employeeId: { type: integer }
+      responses:
+        "200":
+          description: Check-out berhasil
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attendance"
+
+  /attendance/{employeeId}:
+    get:
+      tags: [Attendance]
+      summary: Lihat riwayat absensi karyawan
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Riwayat absensi karyawan
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Attendance"
+
+  /reports/daily:
+    get:
+      tags: [Reports]
+      summary: Laporan absensi harian
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema: { type: string, format: date }
+          description: Tanggal laporan (default = hari ini)
+      responses:
+        "200":
+          description: Laporan absensi harian
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DailyReport"
+
+  /reports/monthly:
+    get:
+      tags: [Reports]
+      summary: Laporan absensi bulanan
+      parameters:
+        - name: month
+          in: query
+          schema: { type: string, example: "2025-08" }
+          description: Bulan laporan (format YYYY-MM)
+      responses:
+        "200":
+          description: Laporan absensi bulanan
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonthlyReport"
+
+components:
+  schemas:
+    Employee:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        position: { type: string }
+        hireDate: { type: string, format: date }
+    EmployeeRequest:
+      type: object
+      required: [name, email, position]
+      properties:
+        name: { type: string }
+        email: { type: string }
+        position: { type: string }
+        hireDate: { type: string, format: date }
+    Attendance:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeId: { type: integer }
+        checkIn: { type: string, format: date-time }
+        checkOut: { type: string, format: date-time }
+    DailyReport:
+      type: object
+      properties:
+        employeeId: { type: integer }
+        employeeName: { type: string }
+        checkIn: { type: string, format: date-time }
+        checkOut: { type: string, format: date-time }
+        status: { type: string, enum: [Hadir, Telat, Tidak Hadir] }
+    MonthlyReport:
+      type: object
+      properties:
+        employeeId: { type: integer }
+        employeeName: { type: string }
+        totalDays: { type: integer }
+        hadir: { type: integer }
+        telat: { type: integer }
+        tidakHadir: { type: integer }
