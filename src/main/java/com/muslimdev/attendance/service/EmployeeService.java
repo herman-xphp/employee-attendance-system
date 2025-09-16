@@ -4,8 +4,10 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.muslimdev.attendance.dto.EmployeeRequest;
+import com.muslimdev.attendance.dto.EmployeeResponse;
 import com.muslimdev.attendance.entity.Employee;
 import com.muslimdev.attendance.repository.EmployeeRepository;
 
@@ -15,18 +17,28 @@ public class EmployeeService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    public Employee createEmployee(EmployeeRequest request) {
-        Employee employee = Employee.builder()
-                .fullName(request.getFullName())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .employeeCode(request.getEmployeeCode())
-                .position(request.getPosition())
-                .joinDate(request.getJoinDate())
-                .active(true)
-                .build();
+    @Transactional
+    public EmployeeResponse create(EmployeeRequest request) {
+        Employee employee = new Employee();
+        employee.setFullName(request.getFullName());
+        employee.setEmail(request.getEmail());
+        employee.setPhoneNumber(request.getPhoneNumber());
+        employee.setEmployeeCode(request.getEmployeeCode());
+        employee.setPosition(request.getPosition());
+        employee.setJoinDate(request.getJoinDate());
+        employee.setDepartment(request.getDepartment());
 
-        return employeeRepository.save(employee);
+        employeeRepository.save(employee);
+
+        return EmployeeResponse.builder()
+                .fullName(employee.getFullName())
+                .email(employee.getEmail())
+                .phoneNumber(employee.getPhoneNumber())
+                .employeeCode(employee.getEmployeeCode())
+                .position(employee.getPosition())
+                .joinDate(employee.getJoinDate())
+                .departmentId(employee.getDepartment().getId())
+                .build();
     }
 
     public List<Employee> findAll() {
