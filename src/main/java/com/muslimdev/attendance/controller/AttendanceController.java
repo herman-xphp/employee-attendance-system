@@ -1,7 +1,6 @@
 package com.muslimdev.attendance.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,17 +19,14 @@ public class AttendanceController {
     private AttendanceService attendanceService;
 
     @PostMapping("/checkin")
-    public ResponseEntity<ApiResponse<AttendanceResponse>> checkin(@RequestBody AttendanceRequest request) {
+    public ApiResponse<AttendanceResponse> checkin(@RequestBody AttendanceRequest request) {
         AttendanceResponse response = attendanceService.checkIn(request);
-
-        return ResponseEntity.ok(
-                new ApiResponse<>("success", response));
+        return ApiResponse.<AttendanceResponse>builder().data(response).build();
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<ApiResponse<AttendanceResponse>> checkout(@RequestBody AttendanceRequest request) {
+    public ApiResponse<AttendanceResponse> checkout(@RequestBody AttendanceRequest request) {
         AttendanceResponse response = attendanceService.checkOut(request);
-        return ResponseEntity.ok(
-                new ApiResponse<>("success", response));
+        return ApiResponse.<AttendanceResponse>builder().data(response).build();
     }
 }

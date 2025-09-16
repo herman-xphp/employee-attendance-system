@@ -14,7 +14,6 @@ import com.muslimdev.attendance.entity.Employee;
 import com.muslimdev.attendance.enums.AttendanceStatus;
 import com.muslimdev.attendance.repository.AttendanceRepository;
 import com.muslimdev.attendance.repository.EmployeeRepository;
-import com.muslimdev.attendance.util.AttendanceMapper;
 
 @Service
 public class AttendanceService {
@@ -49,15 +48,20 @@ public class AttendanceService {
             status = AttendanceStatus.PRESENT;
         }
 
-        Attendance attendance = Attendance.builder()
-                .employee(employee)
-                .checkIn(LocalDateTime.now())
-                .status(status)
+        Attendance attendance = new Attendance();
+        attendance.setCheckIn(now);
+        attendance.setEmployee(employee);
+        attendance.setStatus(status);
+        attendanceRepository.save(attendance);
+
+        return AttendanceResponse.builder()
+                .id(attendance.getId())
+                .employeeId(attendance.getEmployee().getId())
+                .employeeName(attendance.getEmployee().getFullName())
+                .checkIn(attendance.getCheckIn())
+                .checkOut(attendance.getCheckout())
+                .status(attendance.getStatus())
                 .build();
-
-        Attendance saved = attendanceRepository.save(attendance);
-
-        return AttendanceMapper.toDto(saved);
     }
 
     public AttendanceResponse checkOut(AttendanceRequest request) {
@@ -83,8 +87,15 @@ public class AttendanceService {
             attendance.setStatus(AttendanceStatus.EARLY_LEAVE);
         }
 
-        Attendance saved = attendanceRepository.save(attendance);
+        attendanceRepository.save(attendance);
 
-        return AttendanceMapper.toDto(saved);
+        return AttendanceResponse.builder()
+                .id(attendance.getId())
+                .employeeId(attendance.getEmployee().getId())
+                .employeeName(attendance.getEmployee().getFullName())
+                .checkIn(attendance.getCheckIn())
+                .checkOut(attendance.getCheckout())
+                .status(attendance.getStatus())
+                .build();
     }
 }
